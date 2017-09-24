@@ -8,7 +8,11 @@
 
 #import "ViewController.h"
 
-@interface ViewController ()
+@interface ViewController () {
+    UIViewPropertyAnimator *animator;
+    BOOL _statusBarHidden;
+    BOOL _useAnimation;
+}
 
 @end
 
@@ -16,14 +20,43 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    _statusBarHidden = NO;
     // Do any additional setup after loading the view, typically from a nib.
+    
+    animator = [[UIViewPropertyAnimator alloc] initWithDuration:1.0 curve:UIViewAnimationCurveEaseIn animations:^{
+        _statusBarHidden = YES;
+        [self setNeedsStatusBarAppearanceUpdate];
+    }];
+    
 }
 
-
-- (void)didReceiveMemoryWarning {
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
+    return 1;
 }
 
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    return 30;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    return [tableView dequeueReusableCellWithIdentifier:@"cell"];
+}
+
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+    if (!_useAnimation) {
+        return;
+    }
+    
+    CGFloat progress = scrollView.contentOffset.y + scrollView.adjustedContentInset.top;
+    animator.fractionComplete = fminf(progress / 64, 1);
+}
+
+- (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {
+    _useAnimation = YES; // Workaround for scrollViewDidScroll being called without actually scrolling when the view comes up
+}
+
+- (BOOL)prefersStatusBarHidden {
+    return _statusBarHidden;
+}
 
 @end
